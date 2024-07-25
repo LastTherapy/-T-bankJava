@@ -2,14 +2,14 @@ package ru.dobrocraft.ex5;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
-import java.util.Map;
+
 
 public class Main {
 
     public HashMap<Integer, Integer> memoPaths = new HashMap<>();
     // храним максимальный путь для каждого потока чтобы не производить повторные вычисления
     public HashMap<Integer, int[]> threads = new HashMap<>();
-//    public HashMap<Integer, ArrayList<Integer>> distanceMap = new HashMap<>();
+    public HashMap<Integer, ArrayList<Integer>> distanceMap = new HashMap<>();
     public int maxDistance = 0;
 
     public void readInput() {
@@ -33,7 +33,14 @@ public class Main {
                 if (!memoPaths.containsKey(i + 1)) {
                     memoPaths.put(i + 1, findMaxPath(i + 1, 1));
                 }
-                maxPathsLen = Math.max(maxPathsLen, memoPaths.get(i + 1));
+                int currentLen = memoPaths.get(i + 1);
+                maxPathsLen = Math.max(maxPathsLen, currentLen);
+                ArrayList<Integer> arr = distanceMap.get(currentLen);
+                if (arr == null) {
+                    arr = new ArrayList<>();
+                    distanceMap.put(currentLen, arr);
+                }
+                arr.add(i + 1);
             }
         }
         this.maxDistance = maxPathsLen;
@@ -42,8 +49,8 @@ public class Main {
 
     public int findMaxPath(int threadNumber, int currentWay) {
 
-        if (threads.get(threadNumber).length == 0) {
-            memoPaths.put(threadNumber, currentWay);
+        if (threads.get(threadNumber) == null || threads.get(threadNumber).length == 0) {
+//            memoPaths.put(threadNumber, currentWay);
             return currentWay;
         }
         int max_way = currentWay;
@@ -58,15 +65,26 @@ public class Main {
     }
 
     public ArrayList<ArrayList<Integer>> calcSetsOfPaths() {
+        // old less effective vecrion just for check
+//        ArrayList<ArrayList<Integer>> setsOfPaths = new ArrayList<>();
+//        for (int i = 0; i <= this.maxDistance; i++) {
+//            ArrayList<Integer> setPaths = new ArrayList<>();
+//            for (Map.Entry<Integer, Integer> entry : this.memoPaths.entrySet()) {
+//                if (entry.getValue() == i) {
+//                    setPaths.add(entry.getKey());
+//                }
+//            }
+//            if (setPaths.isEmpty()) {
+//                continue;
+//            }
+//            setsOfPaths.add(setPaths);
+//        }
+//        return setsOfPaths;
+
         ArrayList<ArrayList<Integer>> setsOfPaths = new ArrayList<>();
         for (int i = 0; i <= this.maxDistance; i++) {
-            ArrayList<Integer> setPaths = new ArrayList<>();
-            for (Map.Entry<Integer, Integer> entry : this.memoPaths.entrySet()) {
-                if (entry.getValue() == i) {
-                    setPaths.add(entry.getKey());
-                }
-            }
-            if (setPaths.isEmpty()) {
+            ArrayList<Integer> setPaths = distanceMap.get(i + 1);
+            if (setPaths == null || setPaths.isEmpty()) {
                 continue;
             }
             setsOfPaths.add(setPaths);
@@ -91,5 +109,6 @@ public class Main {
             }
             System.out.println();
         }
+
     }
 }
